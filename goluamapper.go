@@ -2,9 +2,9 @@
 package goluamapper
 
 import (
-	"fmt"
+	"errors"
+	"reflect"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/Azure/golua/lua"
@@ -40,9 +40,12 @@ func NewMapper(opt Option) *Mapper {
 }
 
 // Map maps the lua table to the given struct pointer.
-func (mapper *Mapper) Map(table lua.Table, st interface{}) error {
+func (mapper *Mapper) Map(v lua.Value, st interface{}) error {
 	opt := mapper.Option
-	mp := ToGoValue(table, opt)
+	mp := ToGoValue(v, opt)
+	if mp.Kind() != reflect.Map {
+		return errors.New("arguments #1 must be a table, but got an array")
+	}
 	config := &mapstructure.DecoderConfig{
 		WeaklyTypedInput: true,
 		Result:           st,
@@ -53,12 +56,12 @@ func (mapper *Mapper) Map(table lua.Table, st interface{}) error {
 	if err != nil {
 		return err
 	}
-	return decoder.Decode(mp)
+	return decoder.Decode(mp.Interface())
 }
 
 // Map maps the lua table to the given struct pointer with default options.
-func Map(table lua.Table, st interface{}) error {
-	return NewMapper(Option{}).Map(table, st)
+func Map(v lua.Value, st interface{}) error {
+	return NewMapper(Option{}).Map(v, st)
 }
 
 // Id is an Option.NameFunc that returns given string as-is.
@@ -74,59 +77,48 @@ func ToUpperCamelCase(s string) string {
 }
 
 // ToGoValue converts the given LValue to a Go object.
-func ToGoValue(table lua.Table, opt Option) map[interface{}]interface{} {
-	m := map[interface{}]interface{}{}
-	table.ForEach(func(key lua.Value, value lua.Value) {
-		fmt.Println(opt.NameFunc(key.String()))
-		switch value.Type() {
-		case lua.NilType:
-			m[opt.NameFunc(key.String())] = nil
-		case lua.BoolType:
-			m[opt.NameFunc(key.String())] = true
-		case lua.StringType:
-			fmt.Println("hi", value.String())
-			m[opt.NameFunc(key.String())] = value.String()
-		case lua.NumberType:
-			v, err := strconv.ParseInt(value.String(), 10, 64)
-			if err == nil {
-				m[opt.NameFunc(key.String())] = v
-			}
-		}
-	})
-	return m
+// adapted form https://github.com/Azure/golua/blob/master/pkg/luautil/reflect.go
+func ToGoValue(v lua.Value, opt Option) reflect.Value {
+	switch v := v.(type) {
+	case *lua.Object:
+		return reflect.ValueOf(v.Value())
+	case lua.Table:
+		return tableToGo(v, opt)
+	case lua.String:
+		return reflect.ValueOf(string(v))
+	case lua.Float:
+		return reflect.ValueOf(float64(v))
+	case lua.Int:
+		return reflect.ValueOf(int64(v))
+	case lua.Bool:
+		return reflect.ValueOf(bool(v))
+	}
+	return reflect.ValueOf(nil)
 }
 
-/*
-
-	switch lv.Type() {
-	case lua.NilType:
-		return nil
-	case lua.BoolType:
-		return true //bool(lv)
-	case lua.StringType:
-		return "" //string(v)
-	case lua.NumberType:
-		return int64(0) //v
-	case lua.TableType:
-		maxn := 0 //v.Length()
-		if maxn == 0 { // table
-			ret := make(map[interface{}]interface{})
-			/*
-			lv.ForEach(func(key, value lua.Value) {
-				keystr := fmt.Sprint(ToGoValue(key, opt))
-				ret[opt.NameFunc(keystr)] = ToGoValue(value, opt)
-			})
-
-			return ret
-		} else { // array
-			ret := make([]interface{}, 0, maxn)
-			for i := 1; i <= maxn; i++ {
-				ret = append(ret, ToGoValue(lua.Int(i), opt))
+// adapted form https://github.com/Azure/golua/blob/master/pkg/luautil/reflect.go
+func tableToGo(table lua.Table, opt Option) reflect.Value {
+	if length := table.Length(); length == 0 { // map
+		gomap := make(map[interface{}]interface{})
+		table.ForEach(func(key, val lua.Value) {
+			v := ToGoValue(val, opt)
+			if !isZeroOfUnderlyingType(v) {
+				k := ToGoValue(key, opt)
+				gomap[opt.NameFunc(k.String())] = v.Interface()
 			}
-			return ret
+		})
+		return reflect.ValueOf(gomap)
+	} else { // slice
+		slice := make([]interface{}, 0, length)
+		for i := 1; i <= length; i++ {
+			elem := ToGoValue(table.Index(lua.Int(i)), opt)
+			slice = append(slice, elem.Interface())
 		}
-	default:
-		return m
+		return reflect.ValueOf(slice)
 	}
 }
-			*/
+
+// adaped from https://stackoverflow.com/a/13906031
+func isZeroOfUnderlyingType(x interface{}) bool {
+	return reflect.DeepEqual(x, reflect.Zero(reflect.TypeOf(x)).Interface())
+}

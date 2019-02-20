@@ -2,6 +2,7 @@ package goluamapper
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/Azure/golua/lua"
 	"github.com/Azure/golua/std"
 
@@ -24,7 +25,7 @@ type testRole struct {
 type testPerson struct {
 	Name      string
 	Age       int
-	WorkPlace string `goluamapper:"work_place"`
+	WorkPlace string `goluamapper:"w"`
 	Role      []*testRole
 	X         int
 }
@@ -38,9 +39,7 @@ type testStruct struct {
 }
 
 func TestMap(t *testing.T) {
-	debug := false
-	opts := []lua.Option{lua.WithTrace(debug), lua.WithVerbose(debug)}
-	state := lua.NewState(opts...)
+	state := lua.NewState()
 	defer state.Close()
 	std.Open(state)
 
@@ -49,7 +48,7 @@ func TestMap(t *testing.T) {
       		name = "Michel",
       		age  = "31", -- weakly input
 			x    = 100,
-			work_place = "San Jose",
+			w    = "San Jose",
       		role = {
         		{
           			name = "Administrator"
@@ -67,24 +66,22 @@ func TestMap(t *testing.T) {
 	var person testPerson
 
 	state.GetGlobal("person")
-	table := state.Pop().(lua.Table)
+	v := state.Pop()
 
-	if err := Map(table, &person); err != nil {
+	if err := Map(v, &person); err != nil {
 		t.Error(err)
 	}
 	errorIfNotEqual(t, "Michel", person.Name)
 	errorIfNotEqual(t, 31, person.Age)
 	errorIfNotEqual(t, 100, person.X)
 	errorIfNotEqual(t, "San Jose", person.WorkPlace)
-	/*errorIfNotEqual(t, 2, len(person.Role))
+	errorIfNotEqual(t, 2, len(person.Role))
 	errorIfNotEqual(t, "Administrator", person.Role[0].Name)
-	errorIfNotEqual(t, "Operator", person.Role[1].Name)*/
+	errorIfNotEqual(t, "Operator", person.Role[1].Name)
 }
 
 func TestTypes(t *testing.T) {
-	debug := false
-	opts := []lua.Option{lua.WithTrace(debug), lua.WithVerbose(debug)}
-	state := lua.NewState(opts...)
+	state := lua.NewState()
 	defer state.Close()
 	std.Open(state)
 
@@ -104,9 +101,9 @@ func TestTypes(t *testing.T) {
 	var stct testStruct
 
 	state.GetGlobal("tbl")
-	table := state.Pop().(lua.Table)
+	v := state.Pop()
 
-	if err := NewMapper(Option{NameFunc: Id}).Map(table, &stct); err != nil {
+	if err := NewMapper(Option{NameFunc: Id}).Map(v, &stct); err != nil {
 		t.Error(err)
 	}
 	errorIfNotEqual(t, nil, stct.Nil)
@@ -116,27 +113,25 @@ func TestTypes(t *testing.T) {
 }
 
 func TestNameFunc(t *testing.T) {
-	debug := false
-	opts := []lua.Option{lua.WithTrace(debug), lua.WithVerbose(debug)}
-	state := lua.NewState(opts...)
+	state := lua.NewState()
 	defer state.Close()
 	std.Open(state)
 
 	err := state.ExecFrom(bytes.NewReader([]byte(`
-person = {
-	name = "Michel",
-	age  = "31", -- weakly input
-	x    = 100,
-	work_place = "San Jose",
-	role = {
-		{
-			name = "Administrator"
-		},
-		{
-			name = "Operator"
+		person = {
+			name = "Michel",
+			age  = "31", -- weakly input
+			x    = 100,
+			w    = "San Jose",
+			role = {
+				{
+					name = "Administrator"
+				},
+				{
+					name = "Operator"
+				}
+			}
 		}
-	}
-}
 	`)))
 	if err != nil {
 		t.Error(err)
@@ -145,44 +140,38 @@ person = {
 	var person testPerson
 
 	state.GetGlobal("person")
-	table := state.Pop().(lua.Table)
+	v := state.Pop()
 
 	mapper := NewMapper(Option{NameFunc: Id})
-	if err := mapper.Map(table, &person); err != nil {
+	if err := mapper.Map(v, &person); err != nil {
 		t.Error(err)
 	}
 	errorIfNotEqual(t, "Michel", person.Name)
 	errorIfNotEqual(t, 31, person.Age)
 	errorIfNotEqual(t, 100, person.X)
 	errorIfNotEqual(t, "San Jose", person.WorkPlace)
-	/*errorIfNotEqual(t, 2, len(person.Role))
+	errorIfNotEqual(t, 2, len(person.Role))
 	errorIfNotEqual(t, "Administrator", person.Role[0].Name)
-	errorIfNotEqual(t, "Operator", person.Role[1].Name)*/
+	errorIfNotEqual(t, "Operator", person.Role[1].Name)
 }
 
-/*
-
-// TODO: fix and re-enable this test
 func TestError(t *testing.T) {
-	debug := true
-	opts := []lua.Option{lua.WithTrace(debug), lua.WithVerbose(debug)}
-	state := lua.NewState(opts...)
+	state := lua.NewState()
 	defer state.Close()
 	std.Open(state)
 
-	tbl := lua.NewTable()
-	L.SetField(tbl, "key", lua.LString("value"))
-	err := Map(tbl, 1)
+	tmpTable := make(map[interface{}]interface{})
+	tmpTable["key"] = "value"
+	v := lua.ValueOf(state, tmpTable)
+	err := Map(v, 1)
 	if err.Error() != "result must be a pointer" {
 		t.Error("invalid error message")
 	}
 
-	tbl = L.NewTable()
-	tbl.Append(lua.LNumber(1))
 	var person testPerson
-	err = Map(tbl, &person)
+	err = Map(lua.ValueOf(state, []string{"hello"}), &person)
 	if err.Error() != "arguments #1 must be a table, but got an array" {
+		fmt.Println(err.Error())
 		t.Error("invalid error message")
 	}
 }
-*/
