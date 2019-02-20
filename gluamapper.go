@@ -1,5 +1,5 @@
-// gluamapper provides an easy way to map GopherLua tables to Go structs.
-package gluamapper
+// goluamapper provides an easy way to map GopherLua tables to Go structs.
+package goluamapper
 
 import (
 	"errors"
@@ -18,7 +18,7 @@ type Option struct {
 	// Returns error if unused keys exist.
 	ErrorUnused bool
 
-	// A struct tag name for lua table keys . This defaults to "gluamapper"
+	// A struct tag name for lua table keys . This defaults to "goluamapper"
 	TagName string
 }
 
@@ -33,7 +33,7 @@ func NewMapper(opt Option) *Mapper {
 		opt.NameFunc = ToUpperCamelCase
 	}
 	if opt.TagName == "" {
-		opt.TagName = "gluamapper"
+		opt.TagName = "goluamapper"
 	}
 	return &Mapper{opt}
 }

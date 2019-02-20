@@ -1,4 +1,4 @@
-package gluamapper
+package goluamapper
 
 import (
 	"fmt"

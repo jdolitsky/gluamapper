@@ -1,4 +1,4 @@
-package gluamapper
+package goluamapper
 
 import (
 	"github.com/yuin/gopher-lua"
@@ -29,7 +29,7 @@ type testStruct struct {
 	Nil    interface{}
 	Bool   bool
 	String string
-	Number int `gluamapper:"number_value"`
+	Number int `goluamapper:"number_value"`
 	Func   interface{}
 }
 
