@@ -2,9 +2,9 @@
 package goluamapper
 
 import (
-	"errors"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/Azure/golua/lua"
@@ -40,12 +40,9 @@ func NewMapper(opt Option) *Mapper {
 }
 
 // Map maps the lua table to the given struct pointer.
-func (mapper *Mapper) Map(tbl lua.Table, st interface{}) error {
+func (mapper *Mapper) Map(table lua.Table, st interface{}) error {
 	opt := mapper.Option
-	mp, ok := ToGoValue(tbl, opt).(map[interface{}]interface{})
-	if !ok {
-		return errors.New("arguments #1 must be a table, but got an array")
-	}
+	mp := ToGoValue(table, opt)
 	config := &mapstructure.DecoderConfig{
 		WeaklyTypedInput: true,
 		Result:           st,
@@ -60,8 +57,8 @@ func (mapper *Mapper) Map(tbl lua.Table, st interface{}) error {
 }
 
 // Map maps the lua table to the given struct pointer with default options.
-func Map(tbl lua.Table, st interface{}) error {
-	return NewMapper(Option{}).Map(tbl, st)
+func Map(table lua.Table, st interface{}) error {
+	return NewMapper(Option{}).Map(table, st)
 }
 
 // Id is an Option.NameFunc that returns given string as-is.
@@ -77,24 +74,49 @@ func ToUpperCamelCase(s string) string {
 }
 
 // ToGoValue converts the given LValue to a Go object.
-func ToGoValue(lv lua.Value, opt Option) interface{} {
-	switch v := lv.(type) {
-	case lua.Nil:
+func ToGoValue(table lua.Table, opt Option) map[interface{}]interface{} {
+	m := map[interface{}]interface{}{}
+	table.ForEach(func(key lua.Value, value lua.Value) {
+		fmt.Println(opt.NameFunc(key.String()))
+		switch value.Type() {
+		case lua.NilType:
+			m[opt.NameFunc(key.String())] = nil
+		case lua.BoolType:
+			m[opt.NameFunc(key.String())] = true
+		case lua.StringType:
+			fmt.Println("hi", value.String())
+			m[opt.NameFunc(key.String())] = value.String()
+		case lua.NumberType:
+			v, err := strconv.ParseInt(value.String(), 10, 64)
+			if err == nil {
+				m[opt.NameFunc(key.String())] = v
+			}
+		}
+	})
+	return m
+}
+
+/*
+
+	switch lv.Type() {
+	case lua.NilType:
 		return nil
-	case lua.Bool:
-		return bool(v)
-	case lua.String:
-		return string(v)
-	case lua.Number:
-		return v
-	case lua.Table:
-		maxn := v.Length()
+	case lua.BoolType:
+		return true //bool(lv)
+	case lua.StringType:
+		return "" //string(v)
+	case lua.NumberType:
+		return int64(0) //v
+	case lua.TableType:
+		maxn := 0 //v.Length()
 		if maxn == 0 { // table
 			ret := make(map[interface{}]interface{})
-			v.ForEach(func(key, value lua.Value) {
+			/*
+			lv.ForEach(func(key, value lua.Value) {
 				keystr := fmt.Sprint(ToGoValue(key, opt))
 				ret[opt.NameFunc(keystr)] = ToGoValue(value, opt)
 			})
+
 			return ret
 		} else { // array
 			ret := make([]interface{}, 0, maxn)
@@ -104,6 +126,7 @@ func ToGoValue(lv lua.Value, opt Option) interface{} {
 			return ret
 		}
 	default:
-		return v
+		return m
 	}
 }
+			*/
