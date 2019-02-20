@@ -58,4 +58,4 @@ MIT
 
 Yusuke Inuzuka
 
-Source: <https://github.com/yuin/goluamapper>
+Source: <https://github.com/yuin/gluamapper>
