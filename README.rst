@@ -1,31 +1,20 @@
 ===============================================================================
-gluamapper: maps a GopherLua table to a Go struct
+goluamapper: maps an Azure/golua table to a Go struct
 ===============================================================================
 
-.. image:: https://godoc.org/github.com/yuin/gluamapper?status.svg
-    :target: http://godoc.org/github.com/yuin/gluamapper
-
-.. image:: https://travis-ci.org/yuin/gluamapper.svg
-    :target: https://travis-ci.org/yuin/gluamapper
+.. image:: https://godoc.org/github.com/jdolitsky/gluamapper?status.svg
+    :target: http://godoc.org/github.com/jdolitsky/gluamapper
 
 |
 
-gluamapper provides an easy way to map GopherLua tables to Go structs.
+goluamapper provides an easy way to map Azure/golua tables to Go structs.
 
-gluamapper converts a GopherLua table to ``map[string]interface{}`` , and then converts it to a Go struct using `mapstructure <https://github.com/mitchellh/mapstructure/>`_ .
- 
-----------------------------------------------------------------
-Installation
-----------------------------------------------------------------
-
-.. code-block:: bash
-   
-   go get github.com/yuin/gluamapper
+goluamapper converts an Azure/golua table to ``map[string]interface{}`` , and then converts it to a Go struct using `mapstructure <https://github.com/mitchellh/mapstructure/>`_ .
 
 ----------------------------------------------------------------
 API
 ----------------------------------------------------------------
-See `Go doc <http://godoc.org/github.com/yuin/gluamapper>`_ .
+See `Go doc <http://godoc.org/github.com/jdolitsky/gluamapper>`_ .
 
 ----------------------------------------------------------------
 Usage
@@ -63,7 +52,7 @@ Usage
         panic(err)
     }
     var person Person
-    if err := gluamapper.Map(L.GetGlobal("person").(*lua.LTable), &person); err != nil {
+    if err := goluamapper.Map(L.GetGlobal("person").(*lua.LTable), &person); err != nil {
         panic(err)
     }
     fmt.Printf("%s %d", person.Name, person.Age)
@@ -74,6 +63,8 @@ License
 MIT
 
 ----------------------------------------------------------------
-Author
+Original Author
 ----------------------------------------------------------------
 Yusuke Inuzuka
+
+Source: https://github.com/yuin/gluamapper
