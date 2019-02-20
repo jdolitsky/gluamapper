@@ -1,7 +1,10 @@
 package goluamapper
 
 import (
-	"github.com/yuin/gopher-lua"
+	"bytes"
+	"github.com/Azure/golua/lua"
+	"github.com/Azure/golua/std"
+
 	"path/filepath"
 	"runtime"
 	"testing"
@@ -34,26 +37,37 @@ type testStruct struct {
 }
 
 func TestMap(t *testing.T) {
-	L := lua.NewState()
-	if err := L.DoString(`
-    person = {
-      name = "Michel",
-      age  = "31", -- weakly input
-      work_place = "San Jose",
-      role = {
-        {
-          name = "Administrator"
-        },
-        {
-          name = "Operator"
-        }
-      }
-    }
-	`); err != nil {
+	debug := true
+	opts := []lua.Option{lua.WithTrace(debug), lua.WithVerbose(debug)}
+	state := lua.NewState(opts...)
+	defer state.Close()
+	std.Open(state)
+
+	err := state.ExecFrom(bytes.NewReader([]byte(`
+		person = {
+      		name = "Michel",
+      		age  = "31", -- weakly input
+			work_place = "San Jose",
+      		role = {
+        		{
+          			name = "Administrator"
+        		},
+        		{
+          			name = "Operator"
+        		}
+      		}
+    	}
+	`)))
+	if err != nil {
 		t.Error(err)
 	}
+
 	var person testPerson
-	if err := Map(L.GetGlobal("person").(*lua.LTable), &person); err != nil {
+
+	state.GetGlobal("person")
+	table := state.Pop().(lua.Table)
+
+	if err := Map(table, &person); err != nil {
 		t.Error(err)
 	}
 	errorIfNotEqual(t, "Michel", person.Name)
@@ -65,21 +79,31 @@ func TestMap(t *testing.T) {
 }
 
 func TestTypes(t *testing.T) {
-	L := lua.NewState()
-	if err := L.DoString(`
-    tbl = {
-      ["Nil"] = nil,
-      ["Bool"] = true,
-      ["String"] = "string",
-      ["Number_value"] = 10,
-      ["Func"] = function() end
-    }
-	`); err != nil {
+	debug := true
+	opts := []lua.Option{lua.WithTrace(debug), lua.WithVerbose(debug)}
+	state := lua.NewState(opts...)
+	defer state.Close()
+	std.Open(state)
+
+	err := state.ExecFrom(bytes.NewReader([]byte(`
+        tbl = {
+            ["Nil"] = nil,
+            ["Bool"] = true,
+            ["String"] = "string",
+            ["Number_value"] = 10,
+            ["Func"] = function() end
+        }
+	`)))
+	if err != nil {
 		t.Error(err)
 	}
+
 	var stct testStruct
 
-	if err := NewMapper(Option{NameFunc: Id}).Map(L.GetGlobal("tbl").(*lua.LTable), &stct); err != nil {
+	state.GetGlobal("tbl")
+	table := state.Pop().(lua.Table)
+
+	if err := NewMapper(Option{NameFunc: Id}).Map(table, &stct); err != nil {
 		t.Error(err)
 	}
 	errorIfNotEqual(t, nil, stct.Nil)
@@ -89,27 +113,38 @@ func TestTypes(t *testing.T) {
 }
 
 func TestNameFunc(t *testing.T) {
-	L := lua.NewState()
-	if err := L.DoString(`
-    person = {
-      Name = "Michel",
-      Age  = "31", -- weekly input
-      WorkPlace = "San Jose",
-      Role = {
-        {
-          Name = "Administrator"
-        },
-        {
-          Name = "Operator"
-        }
-      }
-    }
-	`); err != nil {
+	debug := true
+	opts := []lua.Option{lua.WithTrace(debug), lua.WithVerbose(debug)}
+	state := lua.NewState(opts...)
+	defer state.Close()
+	std.Open(state)
+
+	err := state.ExecFrom(bytes.NewReader([]byte(`
+		person = {
+      		name = "Michel",
+      		age  = "31", -- weakly input
+			work_place = "San Jose",
+      		role = {
+        		{
+          			name = "Administrator"
+        		},
+        		{
+          			name = "Operator"
+        		}
+      		}
+    	}
+	`)))
+	if err != nil {
 		t.Error(err)
 	}
+
 	var person testPerson
+
+	state.GetGlobal("person")
+	table := state.Pop().(lua.Table)
+
 	mapper := NewMapper(Option{NameFunc: Id})
-	if err := mapper.Map(L.GetGlobal("person").(*lua.LTable), &person); err != nil {
+	if err := mapper.Map(table, &person); err != nil {
 		t.Error(err)
 	}
 	errorIfNotEqual(t, "Michel", person.Name)
@@ -120,9 +155,15 @@ func TestNameFunc(t *testing.T) {
 	errorIfNotEqual(t, "Operator", person.Role[1].Name)
 }
 
+/*
 func TestError(t *testing.T) {
-	L := lua.NewState()
-	tbl := L.NewTable()
+	debug := true
+	opts := []lua.Option{lua.WithTrace(debug), lua.WithVerbose(debug)}
+	state := lua.NewState(opts...)
+	defer state.Close()
+	std.Open(state)
+
+	tbl := lua.NewTable()
 	L.SetField(tbl, "key", lua.LString("value"))
 	err := Map(tbl, 1)
 	if err.Error() != "result must be a pointer" {
@@ -137,3 +178,4 @@ func TestError(t *testing.T) {
 		t.Error("invalid error message")
 	}
 }
+*/
