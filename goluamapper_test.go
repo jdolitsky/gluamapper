@@ -116,7 +116,7 @@ func TestTypes(t *testing.T) {
 }
 
 func TestNameFunc(t *testing.T) {
-	debug := true
+	debug := false
 	opts := []lua.Option{lua.WithTrace(debug), lua.WithVerbose(debug)}
 	state := lua.NewState(opts...)
 	defer state.Close()
