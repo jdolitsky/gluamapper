@@ -22,17 +22,6 @@ Usage
 
 .. code-block:: go
 
-    type Role struct {
-        Name string
-    }
-
-    type Person struct {
-        Name      string
-        Age       int
-        WorkPlace string
-        Role      []*Role
-    }
-
 	debug := true
 	opts := []lua.Option{lua.WithTrace(debug), lua.WithVerbose(debug)}
 	state := lua.NewState(opts...)
@@ -41,18 +30,18 @@ Usage
 
 	err := state.ExecFrom(bytes.NewReader([]byte(`
 		person = {
-      		name = "Michel",
-      		age  = "31", -- weakly input
+			name = "Michel",
+			age  = "31", -- weakly input
 			work_place = "San Jose",
-      		role = {
-        		{
-          			name = "Administrator"
-        		},
-        		{
-          			name = "Operator"
-        		}
-      		}
-    	}
+			role = {
+				{
+					name = "Administrator"
+				},
+				{
+					name = "Operator"
+				}
+    		}
+		}
 	`)))
 	if err != nil {
 		panic(err)
