@@ -1,0 +1,26 @@
+name: cloud-communicator
+version: 0.1.0
+description: this thing talks to the cloud. no joke.
+invocationimage: r.mysite.io/trogdor-burninator/cloud-communicator:0.1.0
+mixins:
+  - exec
+install:
+  - description: Install cloud-communicator
+    exec:
+      command: /usr/local/bin/talk-to-the-cloud
+      arguments:
+        - --setup
+        - --provider
+        - aws
+        - -f
+        - aws-setup.conf
+uninstall:
+  - description: Uninstall cloud-communicator
+    exec:
+      command: /usr/local/bin/talk-to-the-cloud
+      arguments:
+        - --teardown
+        - --provider
+        - aws
+        - -f
+        - aws-teardown.conf
