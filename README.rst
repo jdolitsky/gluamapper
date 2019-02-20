@@ -9,7 +9,7 @@ goluamapper: maps an Azure/golua table to a Go struct
 
 goluamapper provides an easy way to map Azure/golua tables to Go structs.
 
-goluamapper converts an Azure/golua table to ``map[string]interface{}`` , and then converts it to a Go struct using `mapstructure <https://github.com/mitchellh/mapstructure/>`_.
+goluamapper converts an Azure/golua table to ``map[string]interface{}``, and then converts it to a Go struct using `mapstructure <https://github.com/mitchellh/mapstructure/>`_.
 
 ----------------------------------------------------------------
 API
