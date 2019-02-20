@@ -2,8 +2,8 @@
 goluamapper: maps an Azure/golua table to a Go struct
 ===============================================================================
 
-.. image:: https://godoc.org/github.com/jdolitsky/gluamapper?status.svg
-    :target: http://godoc.org/github.com/jdolitsky/gluamapper
+.. image:: https://godoc.org/github.com/jdolitsky/goluamapper?status.svg
+    :target: http://godoc.org/github.com/jdolitsky/goluamapper
 
 |
 
@@ -14,7 +14,7 @@ goluamapper converts an Azure/golua table to ``map[string]interface{}`` , and th
 ----------------------------------------------------------------
 API
 ----------------------------------------------------------------
-See `Go doc <http://godoc.org/github.com/jdolitsky/gluamapper>`_.
+See `Go doc <http://godoc.org/github.com/jdolitsky/goluamapper>`_.
 
 ----------------------------------------------------------------
 Usage
