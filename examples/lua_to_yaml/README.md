@@ -1,9 +1,8 @@
 # goluamapper: Lua to YAML example
 
+The example in [main.go](./main.go) shows how a global variable defined in a Lua script can be converted into YAML
 
-The example code in [main.go](./main.go) shows how a global variable defined in a Lua script can be converted into YAML.
-
-Contents of [porter.lua](./porter.lua):
+Here are the contents of an example Lua script, [porter.lua](./porter.lua):
 ```lua
 local name = "cloud-communicator"
 local version = "0.1.0"
@@ -40,10 +39,12 @@ bundle = {
 To run, clone the repo, `cd` to this directory and run:
 
 ```
-go run . porter.lua
+go run . porter.lua bundle
 ```
 
-Resulting YAML ([porter.yaml](./porter.yaml)):
+The first arg ("porter.lua") is the path to the Lua script, and the second arg ("bundle") is the name of the global variable defined in the Lua script you want to use at your root object.
+
+Resulting YAML (see [porter.yaml](./porter.yaml)):
 ```
 name: cloud-communicator
 version: 0.1.0
