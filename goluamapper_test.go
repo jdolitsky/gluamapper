@@ -25,6 +25,7 @@ type testRole struct {
 type testPerson struct {
 	Name      string
 	Age       int
+	Pi        float64
 	WorkPlace string `goluamapper:"w"`
 	Role      []*testRole
 	X         int
@@ -47,6 +48,7 @@ func TestMap(t *testing.T) {
 		person = {
       		name = "Michel",
       		age  = "31", -- weakly input
+			pi   = 3.14,
 			x    = 100,
 			w    = "San Jose",
       		role = {
@@ -73,6 +75,7 @@ func TestMap(t *testing.T) {
 	}
 	errorIfNotEqual(t, "Michel", person.Name)
 	errorIfNotEqual(t, 31, person.Age)
+	errorIfNotEqual(t, 3.14, person.Pi)
 	errorIfNotEqual(t, 100, person.X)
 	errorIfNotEqual(t, "San Jose", person.WorkPlace)
 	errorIfNotEqual(t, 2, len(person.Role))
