@@ -3,12 +3,12 @@ package goluamapper
 import (
 	"bytes"
 	"fmt"
-	"github.com/Azure/golua/lua"
-	"github.com/Azure/golua/std"
-
 	"path/filepath"
 	"runtime"
 	"testing"
+
+	"github.com/Azure/golua/lua"
+	"github.com/Azure/golua/std"
 )
 
 func errorIfNotEqual(t *testing.T, v1, v2 interface{}) {
