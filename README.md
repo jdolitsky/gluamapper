@@ -13,6 +13,10 @@ See [Go doc](http://godoc.org/github.com/jdolitsky/goluamapper).
 
 ## Usage
 
+See the [source](./examples/readme/main.go) for the example below.
+
+This example will evaluate a Lua script (as string), extract the resulting `person` global variable, and map it to our custom `Person` type:
+
 ``` go
 package main
 
