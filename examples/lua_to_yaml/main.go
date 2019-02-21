@@ -39,18 +39,20 @@ func check(e error) {
 }
 
 func main() {
+	luaScriptPath := os.Args[1]
+	luaScriptGlobalVar := os.Args[2]
+
 	state := lua.NewState()
 	defer state.Close()
 	std.Open(state)
 
 	// Evaluate the Lua script
-	path := os.Args[1]
-	err := state.ExecFile(path)
+	err := state.ExecFile(luaScriptPath)
 	check(err)
 
 	// Extract the "bundle" global var and map to Bundle type
 	var bundle Bundle
-	state.GetGlobal("bundle")
+	state.GetGlobal(luaScriptGlobalVar)
 	err = goluamapper.Map(state.Pop(), &bundle)
 	check(err)
 
