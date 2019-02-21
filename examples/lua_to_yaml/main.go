@@ -2,15 +2,12 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/Azure/golua/lua"
 	"github.com/Azure/golua/std"
 	"github.com/jdolitsky/goluamapper"
 	"gopkg.in/yaml.v2"
-)
-
-const (
-	testLuaScriptPath = "./porter.lua"
 )
 
 type (
@@ -47,7 +44,8 @@ func main() {
 	std.Open(state)
 
 	// Evaluate the Lua script
-	err := state.ExecFile(testLuaScriptPath)
+	path := os.Args[1]
+	err := state.ExecFile(path)
 	check(err)
 
 	// Extract the "bundle" global var and map to Bundle type
@@ -56,7 +54,7 @@ func main() {
 	err = goluamapper.Map(state.Pop(), &bundle)
 	check(err)
 
-	// Convert to YAML and print
+	// Convert to YAML and print to stdout
 	out, err := yaml.Marshal(bundle)
 	check(err)
 	fmt.Println(string(out))
